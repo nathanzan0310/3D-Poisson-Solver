@@ -10,6 +10,7 @@
 #include <omp.h>
 #endif
 
+// Maps 3D indices (i, j, k) into 1D index for flattened array
 inline std::size_t idx(int i, int j, int k,
                        int Nx, int Ny, int Nz_local_with_halo) {
     // layout: k fastest across slabs
@@ -38,6 +39,7 @@ int main(int argc, char** argv) {
     const double PI = std::acos(-1.0);
     const double Lx = 1.0, Ly = 1.0, Lz = 1.0;
 
+    // Grid spacing in each direction
     double dx = Lx / (Nx - 1);
     double dy = Ly / (Ny - 1);
     double dz = Lz / (Nz_global - 1);
@@ -52,8 +54,10 @@ int main(int argc, char** argv) {
         csv.open("poisson_stats.csv");
         csv << "iter,residual_l2,error_l2\n";
     }
-    int sample_every = 10; // can adjust iteration recording frequency
+    // record error/residual every N iterations
+    int sample_every = 1; 
 
+    // Finite difference grid spacing (assuming uniform)
     double h = dx;
     double h2 = h * h;
 
@@ -70,9 +74,14 @@ int main(int argc, char** argv) {
 
     std::size_t Nloc = static_cast<std::size_t>(Nx) * Ny * Nz_local_with_halo;
 
+    // Current numerical approximation of solution to Poisson
     std::vector<double> u(Nloc, 0.0);
+    
+    // Next iteration in Jacobi method
     std::vector<double> u_new(Nloc, 0.0);
-    std::vector<double> f(Nloc, 0.0);
+    
+    // RHS of poisson equation
+    std::vector<double> f(Nloc, 0.0); 
 
     // Precompute lambda for analytic solution:
     double lambda = (n * n + m * m + k_mode * k_mode) * PI * PI;
@@ -100,8 +109,8 @@ int main(int argc, char** argv) {
                     j == 0 || j == Ny - 1 ||
                     k_global == 0 || k_global == Nz_global - 1);
 
-                // Set Dirichlet boundary values from analytic solution
                 if (is_boundary) {
+                    // Dirichlet BC: solution equals analytic j_exact on the boundary
                     u[id]     = jval;
                     u_new[id] = jval;
                     // f[id] is not used at boundary in our Jacobi update, so we can set it to 0
@@ -110,8 +119,8 @@ int main(int argc, char** argv) {
                     u[id]     = 0.0; // initial guess for interior
                     u_new[id] = 0.0;
 
-                    // Compute DISCRETE Laplacian of j_exact at this interior point
-                    // using the same finite-difference stencil as in the solver.
+                    // Compute discrete Laplacian of j_exact at this interior point:
+                    //   Δ_h j ≈ (j_ip - 2*j + j_im)/dx^2 + ...
                     double x_ip = (i + 1) * dx;
                     double x_im = (i - 1) * dx;
                     double y_jp = (j + 1) * dy;
@@ -131,7 +140,9 @@ int main(int argc, char** argv) {
                         (j_jp - 2.0 * jval + j_jm) / (dy * dy) +
                         (j_kp - 2.0 * jval + j_km) / (dz * dz);
 
-                    f[id] = -lap_discrete;  // so that -Δ_h j_exact = f
+                    // Right-hand side f is chosen so that
+                    //   -Δ_h j_exact = f  (discrete manufactured solution)
+                    f[id] = -lap_discrete;
                 }
             }
         }
@@ -154,11 +165,20 @@ int main(int argc, char** argv) {
 
     double t_start = MPI_Wtime();
     int last_iter = 0;
+
+    //  Jacobi main iteration loop
+    //     Exchange halo planes with neighbors using MPI
+    //     Perform Jacobi update on interior points using OpenMP parallel
+    //     Track max update per iteration for convergence
+    //     Periodically compute residual and L2 error vs analytic solution
     for (int iter = 0; iter < max_iters; ++iter) {
         // Halo exchange (non-blocking) on u
         MPI_Request reqs[4];
         int req_count = 0;
 
+        // Halo exchange with non-blocking MPI send/recv
+        //   Exchange the outermost interior planes with neighbor ranks.
+        //   Fill k_local=0 and k_local=Nz_local+1 halo planes.
         // send/recv with rank-1 (bottom neighbor)
         if (rank > 0) {
             // Receive bottom halo (k_local = 0) from rank-1
@@ -171,6 +191,7 @@ int main(int argc, char** argv) {
                       plane_size, MPI_DOUBLE, rank - 1, 1, MPI_COMM_WORLD,
                       &reqs[req_count++]);
         }
+
         // send/recv with rank+1 (top neighbor)
         if (rank < size - 1) {
             // Receive top halo (k_local = Nz_local+1) from rank+1
@@ -226,10 +247,10 @@ int main(int argc, char** argv) {
             }
         }
 
-        // Swap
+        // swap old and new solutions so u now holds the updated values
         u.swap(u_new);
 
-        // Global max update (for convergence)
+        // Global max update for convergence check across all ranks
         double global_max_update = 0.0;
         MPI_Allreduce(&local_max_update, &global_max_update, 1,
                       MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
@@ -320,7 +341,8 @@ int main(int argc, char** argv) {
         }
     }
 
-    // Compute global L2 error vs analytic solution
+    // Compute global L2 error and max pointwise error vs analytic solution
+    // over interior points only
     double local_err2 = 0.0;
     double local_max_err = 0.0;
     std::size_t local_points = 0;
@@ -328,23 +350,34 @@ int main(int argc, char** argv) {
     #pragma omp parallel for collapse(3) reduction(+:local_err2, local_points) reduction(max:local_max_err)
     for (int kk = 1; kk <= Nz_local; ++kk) {
         
-        for (int j = 0; j < Ny; ++j) {
-            for (int i = 0; i < Nx; ++i) {
+        for (int j = 1; j < Ny - 1; ++j) {
+            for (int i = 1; i < Nx - 1; ++i) {
+                int k_global = k_start + (kk - 1);
+
+                bool is_interior =
+                    (i > 0 && i < Nx - 1) &&
+                    (j > 0 && j < Ny - 1) &&
+                    (k_global > 0 && k_global < Nz_global - 1);
+
+                if (!is_interior) continue;
+
                 double x = i * dx;
                 double y = j * dy;
-                
-                int k_global = k_start + (kk - 1);
                 double z = k_global * dz;
                 std::size_t id = idx(i, j, kk, Nx, Ny, Nz_local_with_halo);
 
                 double exact = j_exact(x, y, z);
-                double diff = u[id] - exact;
+                double diff  = u[id] - exact;
+
                 local_err2 += diff * diff;
                 local_points += 1;
-                if (std::fabs(diff) > local_max_err) local_max_err = std::fabs(diff);
+
+                if (std::fabs(diff) > local_max_err)
+                    local_max_err = std::fabs(diff);
             }
         }
     }
+
     double t_end = MPI_Wtime();
     double elapsed = t_end - t_start;
 
