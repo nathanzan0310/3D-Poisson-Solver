@@ -6,6 +6,7 @@
 #include <hip/hip_runtime.h>
 #include <hipcub/hipcub.hpp>
 #include <sys/time.h>
+#include <unistd.h> 
 
 // Simple HIP error check
 #define HIP_CHECK(call)                                                     \
@@ -338,5 +339,12 @@ int main(int argc, char **argv) {
   free(h_f);
 
   MPI_Finalize();
+
+  char host[256];
+  gethostname(host, sizeof(host));
+  int pid = (int)getpid();
+  printf("[rank %d/%d] host=%s pid=%d\n", rank, size, host, pid);
+  fflush(stdout);
+  
   return 0;
 }

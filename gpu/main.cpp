@@ -6,6 +6,8 @@
 #include <mpi.h>
 #include <hip/hip_runtime.h>
 #include <sys/time.h>
+#include <unistd.h> 
+
 
 // ------------------------ Timing helper ------------------------
 double get_time() {
@@ -445,5 +447,12 @@ int main(int argc, char **argv) {
   free(h_res2);
 
   MPI_Finalize();
+
+  char host[256];
+  gethostname(host, sizeof(host));
+  int pid = (int)getpid();
+  printf("[rank %d/%d] host=%s pid=%d\n", rank, size, host, pid);
+  fflush(stdout);
+  
   return 0;
 }
