@@ -4,9 +4,10 @@
 #include <cstdlib>
 #include <mpi.h>
 #include <hip/hip_runtime.h>
-#include <hipcub/hipcub.hpp>
 #include <sys/time.h>
-#include <unistd.h> 
+#include <unistd.h>
+
+constexpr double PI = 3.14159265358979323846;
 
 // Simple HIP error check
 #define HIP_CHECK(call)                                                     \
@@ -29,13 +30,13 @@ double get_time() {
 // ------------------------ Analytic solution & RHS (3D) ------------------------
 __host__ __device__
 double j_exact(double x, double y, double z) {
-  return sin(2.0 * M_PI * x) * sin(2.0 * M_PI * y) * sin(2.0 * M_PI * z);
+  return sin(2.0 * PI * x) * sin(2.0 * PI * y) * sin(2.0 * PI * z);
 }
 
 __host__ __device__
 double f_rhs(double x, double y, double z) {
   double u = j_exact(x, y, z);
-  return -12.0 * M_PI * M_PI * u;
+  return -12.0 * PI * PI * u;
 }
 
 // ------------------------ Indexing helper ------------------------
@@ -77,70 +78,100 @@ void jacobi3d_kernel(const double *u_old, double *u_new, const double *f,
                 u_old[idx_zm] + u_old[idx_zp] - dx2 * f[idx]) / 6.0;
 }
 
-// ------------------------ Error kernel ------------------------
-__global__
-void error_kernel(const double *u_num, const double *u_true, double *err2,
-                  int Nx, int Ny, int local_Nz_with_halo,
-                  int k_start_global, int Nz_global) {
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  int j = blockIdx.y * blockDim.y + threadIdx.y;
-  int k_local = blockIdx.z * blockDim.z + threadIdx.z;
-  if (i >= Nx || j >= Ny || k_local >= local_Nz_with_halo) return;
-
-  int k_global = k_start_global + (k_local - 1);
-  bool is_interior = (k_local >= 1 && k_local <= local_Nz_with_halo - 2) &&
-                     (i > 0 && i < Nx - 1) && (j > 0 && j < Ny - 1) &&
-                     (k_global > 0 && k_global < Nz_global - 1);
-
-  int idx = idx3D(i, j, k_local, Nx, Ny);
-  if (!is_interior) {
-    err2[idx] = 0.0;
-    return;
+__device__ __forceinline__ double warp_reduce_sum(double v) {
+  // Warp-level reduction using shuffle down
+  for (int offset = warpSize / 2; offset > 0; offset >>= 1) {
+    v += __shfl_down(v, offset, warpSize);
   }
-  double diff = u_num[idx] - u_true[idx];
-  err2[idx] = diff * diff;
+  return v;
 }
 
-// ------------------------ Residual kernel (3D, local slab) ------------------------
-// Residual r = (sum(neighbors) - 6*u - dx2*f); we store r^2.
+// ------------------------ Fused error + residual block partials ------------------------
+// Produces one error and one residual partial per block; no atomics on the full grid.
 __global__
-void residual_kernel(const double *u,
-                     const double *f,
-                     double *res2,
-                     int Nx, int Ny, int local_Nz_with_halo,
-                     int k_start_global, int Nz_global,
-                     double dx2) {
+void fused_err_res_partials(const double *u_num, const double *u_true,
+                            const double *f,
+                            double *block_err, double *block_res,
+                            int Nx, int Ny, int local_Nz_with_halo,
+                            int k_start_global, int Nz_global,
+                            double dx2) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
   int k_local = blockIdx.z * blockDim.z + threadIdx.z;
-  if (i >= Nx || j >= Ny || k_local >= local_Nz_with_halo) return;
 
-  int k_global = k_start_global + (k_local - 1);
+  double err_val = 0.0;
+  double res_val = 0.0;
 
-  // Only interior physical points
-  bool is_interior = (k_local >= 1 && k_local <= local_Nz_with_halo - 2) &&
-                     (i > 0 && i < Nx - 1) && (j > 0 && j < Ny - 1) &&
-                     (k_global > 0 && k_global < Nz_global - 1);
+  if (i < Nx && j < Ny && k_local < local_Nz_with_halo) {
+    int k_global = k_start_global + (k_local - 1);
+    bool is_interior = (k_local >= 1 && k_local <= local_Nz_with_halo - 2) &&
+                       (i > 0 && i < Nx - 1) && (j > 0 && j < Ny - 1) &&
+                       (k_global > 0 && k_global < Nz_global - 1);
+    if (is_interior) {
+      int idx    = idx3D(i,     j,     k_local,     Nx, Ny);
+      double uval = u_num[idx];
+      double diff = uval - u_true[idx];
+      err_val = diff * diff;
 
-  int idx = idx3D(i, j, k_local, Nx, Ny);
-  if (!is_interior) {
-    res2[idx] = 0.0;
-    return;
+      int idx_xm = idx3D(i - 1, j,     k_local,     Nx, Ny);
+      int idx_xp = idx3D(i + 1, j,     k_local,     Nx, Ny);
+      int idx_ym = idx3D(i,     j - 1, k_local,     Nx, Ny);
+      int idx_yp = idx3D(i,     j + 1, k_local,     Nx, Ny);
+      int idx_zm = idx3D(i,     j,     k_local - 1, Nx, Ny);
+      int idx_zp = idx3D(i,     j,     k_local + 1, Nx, Ny);
+
+      double sum_nb = u_num[idx_xm] + u_num[idx_xp]
+                    + u_num[idx_ym] + u_num[idx_yp]
+                    + u_num[idx_zm] + u_num[idx_zp];
+      double r = sum_nb - 6.0 * uval - dx2 * f[idx];
+      res_val = r * r;
+    }
   }
 
-  int idx_xm = idx3D(i - 1, j,     k_local,     Nx, Ny);
-  int idx_xp = idx3D(i + 1, j,     k_local,     Nx, Ny);
-  int idx_ym = idx3D(i,     j - 1, k_local,     Nx, Ny);
-  int idx_yp = idx3D(i,     j + 1, k_local,     Nx, Ny);
-  int idx_zm = idx3D(i,     j,     k_local - 1, Nx, Ny);
-  int idx_zp = idx3D(i,     j,     k_local + 1, Nx, Ny);
+  const int tid = ((threadIdx.z * blockDim.y) + threadIdx.y) * blockDim.x + threadIdx.x;
+  const int lane = tid & (warpSize - 1);
+  const int warp_id = tid / warpSize;
 
-  double sum_nb = u[idx_xm] + u[idx_xp]
-                + u[idx_ym] + u[idx_yp]
-                + u[idx_zm] + u[idx_zp];
+  err_val = warp_reduce_sum(err_val);
+  res_val = warp_reduce_sum(res_val);
 
-  double r = sum_nb - 6.0 * u[idx] - dx2 * f[idx];
-  res2[idx] = r * r;
+  __shared__ double warp_err[32];
+  __shared__ double warp_res[32];
+  if (lane == 0) {
+    warp_err[warp_id] = err_val;
+    warp_res[warp_id] = res_val;
+  }
+  __syncthreads();
+
+  if (warp_id == 0) {
+    const int block_threads = blockDim.x * blockDim.y * blockDim.z;
+    const int nwarps = (block_threads + warpSize - 1) / warpSize;
+    double block_err_sum = (lane < nwarps) ? warp_err[lane] : 0.0;
+    double block_res_sum = (lane < nwarps) ? warp_res[lane] : 0.0;
+    block_err_sum = warp_reduce_sum(block_err_sum);
+    block_res_sum = warp_reduce_sum(block_res_sum);
+    if (lane == 0) {
+      int block_linear = blockIdx.x + gridDim.x * (blockIdx.y + gridDim.y * blockIdx.z);
+      block_err[block_linear] = block_err_sum;
+      block_res[block_linear] = block_res_sum;
+    }
+  }
+}
+
+// ------------------------ Final reduction of block partials ------------------------
+__global__
+void reduce_partials(const double *partials, int n, double *out_sum) {
+  extern __shared__ double sdata[];
+  int tid = threadIdx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  double v = (idx < n) ? partials[idx] : 0.0;
+  sdata[tid] = v;
+  __syncthreads();
+  for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (tid < stride) sdata[tid] += sdata[tid + stride];
+    __syncthreads();
+  }
+  if (tid == 0) atomicAdd(out_sum, sdata[0]);
 }
 
 int main(int argc, char **argv) {
@@ -203,16 +234,14 @@ int main(int argc, char **argv) {
   }
 
   // Device allocations
-  double *d_u_old, *d_u_new, *d_f, *d_u_true, *d_err2, *d_err_sum;
-  double *d_res2, *d_res_sum;
+  double *d_u_old, *d_u_new, *d_f, *d_u_true, *d_err_sum;
+  double *d_res_sum;
+  double *d_block_err = nullptr, *d_block_res = nullptr;
   HIP_CHECK(hipMalloc(&d_u_old, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_u_new, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_f, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_u_true, local_size * sizeof(double)));
-  HIP_CHECK(hipMalloc(&d_err2, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_err_sum, sizeof(double)));
-  // Residual device buffers (pointwise residual^2 and reduction result)
-  HIP_CHECK(hipMalloc(&d_res2, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_res_sum, sizeof(double)));
 
   HIP_CHECK(hipMemcpy(d_u_old, h_u_init, local_size * sizeof(double), hipMemcpyHostToDevice));
@@ -229,15 +258,14 @@ int main(int argc, char **argv) {
   hipEventCreate(&start_event);
   hipEventCreate(&stop_event);
 
+  // allocate per-block partial arrays for fused reduction
+  size_t num_blocks = static_cast<size_t>(gridDim.x) * gridDim.y * gridDim.z;
+  HIP_CHECK(hipMalloc(&d_block_err, num_blocks * sizeof(double)));
+  HIP_CHECK(hipMalloc(&d_block_res, num_blocks * sizeof(double)));
+
   int up = (rank < size - 1) ? rank + 1 : MPI_PROC_NULL;
   int down = (rank > 0) ? rank - 1 : MPI_PROC_NULL;
   MPI_Request reqs[4];
-
-  // Scratch for hipcub reduction
-  void *d_temp_storage = nullptr;
-  size_t temp_bytes = 0;
-  hipcub::DeviceReduce::Sum(d_temp_storage, temp_bytes, d_err2, d_err_sum, local_size);
-  HIP_CHECK(hipMalloc(&d_temp_storage, temp_bytes));
 
   double error = 1.0;
   int iter = 0;
@@ -279,25 +307,25 @@ int main(int argc, char **argv) {
 
     // Periodic error check fully on GPU
     if (iter % sample_every == 0 || iter == max_iter) {
-      // pointwise squared error on GPU
-      error_kernel<<<gridDim, blockDim>>>(d_u_old, d_u_true, d_err2, Nx, Ny,
-                                          local_Nz_with_halo, k_start_global,
-                                          Nz_global);
+      // zero device scalars
+      HIP_CHECK(hipMemset(d_err_sum, 0, sizeof(double)));
+      HIP_CHECK(hipMemset(d_res_sum, 0, sizeof(double)));
+
+      // fused block partials
+      fused_err_res_partials<<<gridDim, blockDim>>>(d_u_old, d_u_true, d_f,
+                       d_block_err, d_block_res,
+                       Nx, Ny, local_Nz_with_halo,
+                       k_start_global, Nz_global,
+                       dx2);
       HIP_CHECK(hipGetLastError());
 
-      // pointwise squared residual on GPU
-      residual_kernel<<<gridDim, blockDim>>>(d_u_old, d_f, d_res2,
-                                             Nx, Ny, local_Nz_with_halo,
-                                             k_start_global, Nz_global,
-                                             dx2);
+      // final reduction over block partials
+      int red_block = 256;
+      int red_grid = (num_blocks + red_block - 1) / red_block;
+      size_t shmem = red_block * sizeof(double);
+      reduce_partials<<<red_grid, red_block, shmem>>>(d_block_err, num_blocks, d_err_sum);
+      reduce_partials<<<red_grid, red_block, shmem>>>(d_block_res, num_blocks, d_res_sum);
       HIP_CHECK(hipGetLastError());
-
-      // GPU reduction: sum of err2 over local slab
-      hipcub::DeviceReduce::Sum(d_temp_storage, temp_bytes, d_err2, d_err_sum,
-                                local_size);
-      // GPU reduction: sum of res2 over local slab (reuse same temp storage)
-      hipcub::DeviceReduce::Sum(d_temp_storage, temp_bytes, d_res2, d_res_sum,
-                                local_size);
 
       double h_err_sum = 0.0;
       double h_res_sum = 0.0;
@@ -325,15 +353,14 @@ int main(int argc, char **argv) {
            iter, error, global_end - global_start);
   }
 
-  hipFree(d_temp_storage);
   hipFree(d_u_old);
   hipFree(d_u_new);
   hipFree(d_f);
   hipFree(d_u_true);
-  hipFree(d_err2);
   hipFree(d_err_sum);
-  hipFree(d_res2);
   hipFree(d_res_sum);
+  hipFree(d_block_err);
+  hipFree(d_block_res);
   free(h_u_init);
   free(h_u_true);
   free(h_f);

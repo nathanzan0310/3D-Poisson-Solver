@@ -1,0 +1,4 @@
+reduction/
+no_reduction/
+*.o
+!/*log.txt
