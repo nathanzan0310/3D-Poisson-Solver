@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <mpi.h>
@@ -112,6 +113,52 @@ void error_kernel(const double *u_num,
   err2[idx] = diff * diff;
 }
 
+// ------------------------ NEW: Residual kernel (3D, local slab) ------------------------
+// Residual r = (sum(neighbors) - 6*u - dx2*f); we store r^2.
+__global__
+void residual_kernel(const double *u,
+                     const double *f,
+                     double *res2,
+                     int Nx, int Ny, int local_Nz_with_halo,
+                     int k_start_global, int Nz_global,
+                     double dx2)
+{
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+  int k_local = blockIdx.z * blockDim.z + threadIdx.z;
+
+  if (i >= Nx || j >= Ny || k_local >= local_Nz_with_halo) return;
+
+  int k_global = k_start_global + (k_local - 1);
+
+  // Only interior physical points
+  bool is_interior =
+      (k_local >= 1 && k_local <= local_Nz_with_halo - 2) &&
+      (i > 0 && i < Nx - 1) &&
+      (j > 0 && j < Ny - 1) &&
+      (k_global > 0 && k_global < Nz_global - 1);
+
+  int idx = idx3D(i, j, k_local, Nx, Ny);
+  if (!is_interior) {
+    res2[idx] = 0.0;
+    return;
+  }
+
+  int idx_xm = idx3D(i - 1, j,     k_local,     Nx, Ny);
+  int idx_xp = idx3D(i + 1, j,     k_local,     Nx, Ny);
+  int idx_ym = idx3D(i,     j - 1, k_local,     Nx, Ny);
+  int idx_yp = idx3D(i,     j + 1, k_local,     Nx, Ny);
+  int idx_zm = idx3D(i,     j,     k_local - 1, Nx, Ny);
+  int idx_zp = idx3D(i,     j,     k_local + 1, Nx, Ny);
+
+  double sum_nb = u[idx_xm] + u[idx_xp]
+                + u[idx_ym] + u[idx_yp]
+                + u[idx_zm] + u[idx_zp];
+
+  double r = sum_nb - 6.0 * u[idx] - dx2 * f[idx];
+  res2[idx] = r * r;
+}
+
 // ------------------------ Main: MPI + HIP, single kernel per iteration ------------------------
 int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
@@ -122,12 +169,12 @@ int main(int argc, char **argv) {
   MPI_Comm_size(comm, &size);
 
   // Global problem size (adjust as needed)
-  int Nx = 128;
-  int Ny = 128;
-  int Nz_global = 128;
+  int Nx = 256;
+  int Ny = 256;
+  int Nz_global = 256;
 
   int max_iter = 50000;
-  double tol = 1e-6;
+  double tol = 1e-7;
 
   double dx = 1.0 / (Nx - 1);
   double dy = 1.0 / (Ny - 1);
@@ -151,6 +198,7 @@ int main(int argc, char **argv) {
   double *h_u_true   = (double *)calloc(local_size, sizeof(double));
   double *h_f        = (double *)malloc(local_size * sizeof(double));
   double *h_err2     = (double *)calloc(local_size, sizeof(double));
+  double *h_res2     = (double *)calloc(local_size, sizeof(double)); // NEW
 
   // Initialize u, u_true, and f on this rank's slab (k_local = 1..local_Nz)
   for (int k_local = 1; k_local <= local_Nz; ++k_local) {
@@ -184,12 +232,13 @@ int main(int argc, char **argv) {
   // Halos (k_local = 0 and local_Nz+1) remain 0; they will be filled by halo exchange.
 
   // Device allocations
-  double *d_u_old, *d_u_new, *d_f, *d_u_true, *d_err2;
+  double *d_u_old, *d_u_new, *d_f, *d_u_true, *d_err2, *d_res2;
   hipMalloc(&d_u_old,  local_size * sizeof(double));
   hipMalloc(&d_u_new,  local_size * sizeof(double));
   hipMalloc(&d_f,      local_size * sizeof(double));
   hipMalloc(&d_u_true, local_size * sizeof(double));
   hipMalloc(&d_err2,   local_size * sizeof(double));
+  hipMalloc(&d_res2,   local_size * sizeof(double));  // NEW
 
   // Copy initial data to device
   hipMemcpy(d_u_old,  h_u_init, local_size * sizeof(double), hipMemcpyHostToDevice);
@@ -217,7 +266,27 @@ int main(int argc, char **argv) {
   MPI_Request reqs[4];
 
   double error = 1.0;
+  double residual = 1.0;   // NEW
   int iter = 0;
+
+  // NEW: arithmetic intensity & bytes for performance stats
+  double N_interior = (double)(Nx - 2) * (Ny - 2) * (Nz_global - 2);
+  double flops_per_point = 8.0;           // approx flops per interior Jacobi update
+  double bytes_per_point = 8.0 * 8.0;     // 7 loads + 1 store of doubles ~ 64B
+  double total_flops = N_interior * flops_per_point;
+  double total_bytes = N_interior * bytes_per_point;
+  double AI = total_flops / total_bytes;  // constant arithmetic intensity
+
+  // NEW: open stats.csv on rank 0
+  FILE *stats = nullptr;
+  if (rank == 0) {
+    stats = fopen("stats.csv", "w");
+    if (!stats) {
+      perror("fopen stats.csv");
+      MPI_Abort(comm, 1);
+    }
+    fprintf(stats, "iteration,error,residual,AI,bandwidth_gbs,time\n");
+  }
 
   if (rank == 0) {
     printf("Starting MPI+HIP 3D Jacobi (single kernel/iter): %dx%dx%d, %d ranks\n",
@@ -229,7 +298,7 @@ int main(int argc, char **argv) {
   while (error > tol && iter < max_iter) {
     iter++;
 
-    // ---------------- Halo exchange on u_old (blocking overall, but non-blocking calls) ----------------
+    // ---------------- Halo exchange on u_old ----------------
     double *bottom_halo = d_u_old + 0            * plane_size;      // k_local = 0
     double *bottom_send = d_u_old + 1            * plane_size;      // k_local = 1
     double *top_send    = d_u_old + local_Nz     * plane_size;      // k_local = local_Nz
@@ -266,7 +335,7 @@ int main(int argc, char **argv) {
     // ---------------- Swap buffers ----------------
     std::swap(d_u_old, d_u_new);
 
-    // ---------------- Compute error every N iterations ----------------
+    // ---------------- Compute stats every 100 iterations (and at the end) ----------------
     if (iter % 100 == 0 || iter == max_iter) {
       // GPU: pointwise squared error
       error_kernel<<<gridDim, blockDim>>>(
@@ -274,13 +343,24 @@ int main(int argc, char **argv) {
           Nx, Ny, local_Nz_with_halo,
           k_start_global, Nz_global
       );
+      // GPU: pointwise squared residual
+      residual_kernel<<<gridDim, blockDim>>>(
+          d_u_old, d_f, d_res2,
+          Nx, Ny, local_Nz_with_halo,
+          k_start_global, Nz_global,
+          dx2
+      );
       hipDeviceSynchronize();
 
-      // Copy local err2 to host, sum, then MPI_Allreduce
+      // Copy back error^2 and residual^2
       hipMemcpy(h_err2, d_err2, local_size * sizeof(double),
+                hipMemcpyDeviceToHost);
+      hipMemcpy(h_res2, d_res2, local_size * sizeof(double),
                 hipMemcpyDeviceToHost);
 
       double local_err_sum = 0.0;
+      double local_res_sum = 0.0;
+
       for (int k_local = 1; k_local <= local_Nz; ++k_local) {
         int k_global = k_start_global + (k_local - 1);
         if (k_global == 0 || k_global == Nz_global - 1) continue;
@@ -288,29 +368,68 @@ int main(int argc, char **argv) {
           for (int j = 1; j < Ny - 1; ++j) {
             int idx = idx3D(i, j, k_local, Nx, Ny);
             local_err_sum += h_err2[idx];
+            local_res_sum += h_res2[idx];
           }
         }
       }
 
       double global_err_sum = 0.0;
+      double global_res_sum = 0.0;
       MPI_Allreduce(&local_err_sum, &global_err_sum, 1,
                     MPI_DOUBLE, MPI_SUM, comm);
+      MPI_Allreduce(&local_res_sum, &global_res_sum, 1,
+                    MPI_DOUBLE, MPI_SUM, comm);
 
-      double N_interior = (double)(Nx - 2) * (Ny - 2) * (Nz_global - 2);
-      error = std::sqrt(global_err_sum / N_interior);
+      error    = std::sqrt(global_err_sum / N_interior);
+      residual = std::sqrt(global_res_sum / N_interior);
+
+      double time_s = elapsed_ms / 1000.0;                    // kernel time (s)
+      double bandwidth_gbs = total_bytes / (time_s * 1e9);    // effective GB/s
 
       if (rank == 0) {
-        printf("Iter %d: Error = %e, GPU time = %f ms\n",
-               iter, error, elapsed_ms);
+        printf("Iter %d: Error = %e, Residual = %e, GPU time = %f ms\n",
+               iter, error, residual, elapsed_ms);
+
+        // write to stats.csv
+        fprintf(stats, "%d,%.16e,%.16e,%.8f,%.8f,%.8f\n",
+                iter, error, residual, AI, bandwidth_gbs, time_s);
+        fflush(stats);
       }
     }
   }
 
   double global_end = get_time();
   if (rank == 0) {
-    printf("Finished at iteration %d with error %e, wall time %f s\n",
-           iter, error, global_end - global_start);
+    double elapsed = global_end - global_start;
+    double num_iters = (double)iter;
+
+    // Total work over all iterations (global interior points already baked into total_flops/bytes)
+    double total_flops_all  = total_flops  * num_iters;
+    double total_bytes_all  = total_bytes  * num_iters;
+
+    double gflops          = total_flops_all / (elapsed * 1e9);
+    double bandwidth_GBps  = total_bytes_all / (elapsed * 1e9);
+
+    // For roofline, you can interpret this as threads per block (GPU); adjust if you prefer something else
+    int threads = blockDim.x * blockDim.y * blockDim.z;
+
+    printf("Finished at iteration %d with error %e, residual %e, wall time %f s\n",
+            iter, error, residual, elapsed);
+
+    // Close stats.csv
+    if (stats) fclose(stats);
+
+    // ---------- NEW: write single-line roofline CSV ----------
+    std::ofstream roof("roofline_jacobi.csv");
+    roof << "Nx,Ny,Nz_global,ranks,threads,num_iters,elapsed_s,"
+            "total_flops,total_bytes,intensity,GFLOPs,GBps\n";
+    roof << Nx << "," << Ny << "," << Nz_global << ","
+        << size << "," << threads << ","
+        << iter << "," << elapsed << ","
+        << total_flops_all << "," << total_bytes_all << ","
+        << AI << "," << gflops << "," << bandwidth_GBps << "\n";
   }
+
 
   // Cleanup
   hipFree(d_u_old);
@@ -318,10 +437,12 @@ int main(int argc, char **argv) {
   hipFree(d_f);
   hipFree(d_u_true);
   hipFree(d_err2);
+  hipFree(d_res2);
   free(h_u_init);
   free(h_u_true);
   free(h_f);
   free(h_err2);
+  free(h_res2);
 
   MPI_Finalize();
   return 0;
