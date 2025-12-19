@@ -151,13 +151,21 @@ int main(int argc, char** argv) {
 
     // Jacobi parameters
     int max_iters = 5000;
-    double tol = 1e-8;
+    double tol = 1e-10;
     int print_every = 100;
+
+    if (argc >= 5) {
+        double user_tol = std::atof(argv[4]);
+        if (user_tol > 0.0) {
+            tol = user_tol;
+        }
+    }
 
     if (rank == 0) {
         std::cout << "Global grid: " << Nx << " x " << Ny << " x " << Nz_global << "\n";
         std::cout << "Ranks: " << size << "\n";
         std::cout << "Local Nz (rank " << rank << "): " << Nz_local << "\n";
+        std::cout << "Stopping tolerance: " << tol << "\n";
     }
 
     // Buffers (planes) are contiguous: Nx*Ny doubles per plane
@@ -205,28 +213,78 @@ int main(int argc, char** argv) {
                       &reqs[req_count++]);
         }
 
+        // Jacobi update with computation/communication overlap
+
+        // local_max_update tracks the biggest change on this rank
+        double local_max_update = 0.0;
+
+        /*
+        * Phase 1: compute "deep interior" planes that do NOT depend on halos.
+        * These are k_local = 2 .. Nz_local-1.
+        * - Their neighbors in k are all local (1..Nz_local).
+        * - While we do this, halo messages (k=0 and k=Nz_local+1) are in flight.
+        */
+        if (Nz_local > 2) {
+            #pragma omp parallel for collapse(3) reduction(max:local_max_update)
+            for (int kk = 2; kk <= Nz_local - 1; ++kk) {
+                for (int j = 1; j < Ny - 1; ++j) {
+                    for (int i = 1; i < Nx - 1; ++i) {
+                        int k_global = k_start + (kk - 1);
+
+                        // Physical domain boundaries (Dirichlet) stay fixed
+                        bool is_boundary =
+                            (k_global == 0 || k_global == Nz_global - 1 ||
+                            i == 0 || i == Nx - 1 ||
+                            j == 0 || j == Ny - 1);
+
+                        if (is_boundary) continue;
+
+                        std::size_t id = idx(i, j, kk, Nx, Ny, Nz_local_with_halo);
+
+                        double sum_neighbors =
+                            u[idx(i + 1, j,     kk,     Nx, Ny, Nz_local_with_halo)] +
+                            u[idx(i - 1, j,     kk,     Nx, Ny, Nz_local_with_halo)] +
+                            u[idx(i,     j + 1, kk,     Nx, Ny, Nz_local_with_halo)] +
+                            u[idx(i,     j - 1, kk,     Nx, Ny, Nz_local_with_halo)] +
+                            u[idx(i,     j,     kk + 1, Nx, Ny, Nz_local_with_halo)] +
+                            u[idx(i,     j,     kk - 1, Nx, Ny, Nz_local_with_halo)];
+
+                        double u_new_val = (sum_neighbors + h2 * f[id]) / 6.0;
+                        double diff      = std::fabs(u_new_val - u[id]);
+                        if (diff > local_max_update) local_max_update = diff;
+
+                        u_new[id] = u_new_val;
+                    }
+                }
+            }
+        }
+
+        /*
+        * At this point, we've done a lot of compute that doesn't depend on halos.
+        * Now we must ensure halo planes (k=0 and k=Nz_local+1) are actually received.
+        */
         if (req_count > 0) {
             MPI_Waitall(req_count, reqs, MPI_STATUSES_IGNORE);
         }
 
-        // Jacobi update on interior points
-        double local_max_update = 0.0;
+        /*
+        * Phase 2: compute the "boundary interior" planes that DO depend on halos:
+        * k_local = 1 (needs halo at k=0) and k_local = Nz_local (needs halo at k=Nz_local+1).
+        * We handle them after the halos have been updated.
+        */
 
-        #pragma omp parallel for collapse(3) reduction(max:local_max_update)
-        for (int kk = 1; kk <= Nz_local; ++kk) { // local planes with data
-            
+        // Bottom interior plane (k_local = 1) if it exists
+        if (Nz_local >= 1) {
+            int kk = 1;
+            #pragma omp parallel for collapse(2) reduction(max:local_max_update)
             for (int j = 1; j < Ny - 1; ++j) {
                 for (int i = 1; i < Nx - 1; ++i) {
                     int k_global = k_start + (kk - 1);
                     bool is_boundary =
                         (k_global == 0 || k_global == Nz_global - 1 ||
-                         i == 0 || i == Nx - 1 ||
-                         j == 0 || j == Ny - 1);
-
-                    if (is_boundary) {
-                        // Keep Dirichlet boundaries fixed
-                        continue;
-                    }
+                        i == 0 || i == Nx - 1 ||
+                        j == 0 || j == Ny - 1);
+                    if (is_boundary) continue;
 
                     std::size_t id = idx(i, j, kk, Nx, Ny, Nz_local_with_halo);
 
@@ -235,11 +293,43 @@ int main(int argc, char** argv) {
                         u[idx(i - 1, j,     kk,     Nx, Ny, Nz_local_with_halo)] +
                         u[idx(i,     j + 1, kk,     Nx, Ny, Nz_local_with_halo)] +
                         u[idx(i,     j - 1, kk,     Nx, Ny, Nz_local_with_halo)] +
-                        u[idx(i,     j,     kk + 1, Nx, Ny, Nz_local_with_halo)] +
-                        u[idx(i,     j,     kk - 1, Nx, Ny, Nz_local_with_halo)];
+                        u[idx(i,     j,     kk + 1, Nx, Ny, Nz_local_with_halo)] +   // interior neighbor
+                        u[idx(i,     j,     kk - 1, Nx, Ny, Nz_local_with_halo)];    // halo plane at k=0
 
                     double u_new_val = (sum_neighbors + h2 * f[id]) / 6.0;
-                    double diff = std::fabs(u_new_val - u[id]);
+                    double diff      = std::fabs(u_new_val - u[id]);
+                    if (diff > local_max_update) local_max_update = diff;
+
+                    u_new[id] = u_new_val;
+                }
+            }
+        }
+
+        // Top interior plane (k_local = Nz_local) if it exists AND is distinct
+        if (Nz_local >= 2) {
+            int kk = Nz_local;
+            #pragma omp parallel for collapse(2) reduction(max:local_max_update)
+            for (int j = 1; j < Ny - 1; ++j) {
+                for (int i = 1; i < Nx - 1; ++i) {
+                    int k_global = k_start + (kk - 1);
+                    bool is_boundary =
+                        (k_global == 0 || k_global == Nz_global - 1 ||
+                        i == 0 || i == Nx - 1 ||
+                        j == 0 || j == Ny - 1);
+                    if (is_boundary) continue;
+
+                    std::size_t id = idx(i, j, kk, Nx, Ny, Nz_local_with_halo);
+
+                    double sum_neighbors =
+                        u[idx(i + 1, j,     kk,     Nx, Ny, Nz_local_with_halo)] +
+                        u[idx(i - 1, j,     kk,     Nx, Ny, Nz_local_with_halo)] +
+                        u[idx(i,     j + 1, kk,     Nx, Ny, Nz_local_with_halo)] +
+                        u[idx(i,     j - 1, kk,     Nx, Ny, Nz_local_with_halo)] +
+                        u[idx(i,     j,     kk + 1, Nx, Ny, Nz_local_with_halo)] +   // halo at k=Nz_local+1
+                        u[idx(i,     j,     kk - 1, Nx, Ny, Nz_local_with_halo)];    // interior neighbor
+
+                    double u_new_val = (sum_neighbors + h2 * f[id]) / 6.0;
+                    double diff      = std::fabs(u_new_val - u[id]);
                     if (diff > local_max_update) local_max_update = diff;
 
                     u_new[id] = u_new_val;

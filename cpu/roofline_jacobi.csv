@@ -1,2 +1,2 @@
 Nx,Ny,Nz_global,ranks,threads,num_iters,elapsed_s,total_flops,total_bytes,intensity,GFLOPs,GBps
-64,64,64,8,16,3207,6.75815,8.4075e+09,5.50309e+10,0.152778,1.24405,8.14289
+256,256,256,8,16,5000,1602.87,9.01289e+11,5.89934e+12,0.152778,0.562297,3.68049
