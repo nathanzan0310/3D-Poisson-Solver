@@ -100,6 +100,48 @@ void error_kernel(const double *u_num, const double *u_true, double *err2,
   err2[idx] = diff * diff;
 }
 
+// ------------------------ Residual kernel (3D, local slab) ------------------------
+// Residual r = (sum(neighbors) - 6*u - dx2*f); we store r^2.
+__global__
+void residual_kernel(const double *u,
+                     const double *f,
+                     double *res2,
+                     int Nx, int Ny, int local_Nz_with_halo,
+                     int k_start_global, int Nz_global,
+                     double dx2) {
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  int j = blockIdx.y * blockDim.y + threadIdx.y;
+  int k_local = blockIdx.z * blockDim.z + threadIdx.z;
+  if (i >= Nx || j >= Ny || k_local >= local_Nz_with_halo) return;
+
+  int k_global = k_start_global + (k_local - 1);
+
+  // Only interior physical points
+  bool is_interior = (k_local >= 1 && k_local <= local_Nz_with_halo - 2) &&
+                     (i > 0 && i < Nx - 1) && (j > 0 && j < Ny - 1) &&
+                     (k_global > 0 && k_global < Nz_global - 1);
+
+  int idx = idx3D(i, j, k_local, Nx, Ny);
+  if (!is_interior) {
+    res2[idx] = 0.0;
+    return;
+  }
+
+  int idx_xm = idx3D(i - 1, j,     k_local,     Nx, Ny);
+  int idx_xp = idx3D(i + 1, j,     k_local,     Nx, Ny);
+  int idx_ym = idx3D(i,     j - 1, k_local,     Nx, Ny);
+  int idx_yp = idx3D(i,     j + 1, k_local,     Nx, Ny);
+  int idx_zm = idx3D(i,     j,     k_local - 1, Nx, Ny);
+  int idx_zp = idx3D(i,     j,     k_local + 1, Nx, Ny);
+
+  double sum_nb = u[idx_xm] + u[idx_xp]
+                + u[idx_ym] + u[idx_yp]
+                + u[idx_zm] + u[idx_zp];
+
+  double r = sum_nb - 6.0 * u[idx] - dx2 * f[idx];
+  res2[idx] = r * r;
+}
+
 int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   MPI_Comm comm = MPI_COMM_WORLD;
@@ -161,12 +203,16 @@ int main(int argc, char **argv) {
 
   // Device allocations
   double *d_u_old, *d_u_new, *d_f, *d_u_true, *d_err2, *d_err_sum;
+  double *d_res2, *d_res_sum;
   HIP_CHECK(hipMalloc(&d_u_old, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_u_new, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_f, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_u_true, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_err2, local_size * sizeof(double)));
   HIP_CHECK(hipMalloc(&d_err_sum, sizeof(double)));
+  // Residual device buffers (pointwise residual^2 and reduction result)
+  HIP_CHECK(hipMalloc(&d_res2, local_size * sizeof(double)));
+  HIP_CHECK(hipMalloc(&d_res_sum, sizeof(double)));
 
   HIP_CHECK(hipMemcpy(d_u_old, h_u_init, local_size * sizeof(double), hipMemcpyHostToDevice));
   HIP_CHECK(hipMemcpy(d_u_new, h_u_init, local_size * sizeof(double), hipMemcpyHostToDevice));
@@ -232,24 +278,42 @@ int main(int argc, char **argv) {
 
     // Periodic error check fully on GPU
     if (iter % sample_every == 0 || iter == max_iter) {
+      // pointwise squared error on GPU
       error_kernel<<<gridDim, blockDim>>>(d_u_old, d_u_true, d_err2, Nx, Ny,
                                           local_Nz_with_halo, k_start_global,
                                           Nz_global);
       HIP_CHECK(hipGetLastError());
 
+      // pointwise squared residual on GPU
+      residual_kernel<<<gridDim, blockDim>>>(d_u_old, d_f, d_res2,
+                                             Nx, Ny, local_Nz_with_halo,
+                                             k_start_global, Nz_global,
+                                             dx2);
+      HIP_CHECK(hipGetLastError());
+
       // GPU reduction: sum of err2 over local slab
       hipcub::DeviceReduce::Sum(d_temp_storage, temp_bytes, d_err2, d_err_sum,
                                 local_size);
+      // GPU reduction: sum of res2 over local slab (reuse same temp storage)
+      hipcub::DeviceReduce::Sum(d_temp_storage, temp_bytes, d_res2, d_res_sum,
+                                local_size);
+
       double h_err_sum = 0.0;
+      double h_res_sum = 0.0;
       HIP_CHECK(hipMemcpy(&h_err_sum, d_err_sum, sizeof(double), hipMemcpyDeviceToHost));
+      HIP_CHECK(hipMemcpy(&h_res_sum, d_res_sum, sizeof(double), hipMemcpyDeviceToHost));
 
       double global_err_sum = 0.0;
+      double global_res_sum = 0.0;
       MPI_Allreduce(&h_err_sum, &global_err_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
+      MPI_Allreduce(&h_res_sum, &global_res_sum, 1, MPI_DOUBLE, MPI_SUM, comm);
       double N_interior = (double)(Nx - 2) * (Ny - 2) * (Nz_global - 2);
       error = std::sqrt(global_err_sum / N_interior);
+      double residual = std::sqrt(global_res_sum / N_interior);
 
       if (rank == 0) {
-        printf("Iter %d: error = %e, GPU time = %f ms\n", iter, error, elapsed_ms);
+        printf("Iter %d: error = %e, residual = %e, GPU time = %f ms\n",
+               iter, error, residual, elapsed_ms);
       }
     }
   }
@@ -267,6 +331,8 @@ int main(int argc, char **argv) {
   hipFree(d_u_true);
   hipFree(d_err2);
   hipFree(d_err_sum);
+  hipFree(d_res2);
+  hipFree(d_res_sum);
   free(h_u_init);
   free(h_u_true);
   free(h_f);
