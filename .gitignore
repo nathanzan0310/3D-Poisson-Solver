@@ -1,4 +1,4 @@
-reduction/
-no_reduction/
+gpu/reduction/*
+gpu/no_reduction/*
 *.o
-!/*log.txt
+!gpu/*/log.txt

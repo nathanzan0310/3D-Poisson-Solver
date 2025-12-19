@@ -1,0 +1,508 @@
+[bustudent79@k005-003 gpu]$ rocprofv3 --kernel-trace --stats --summary --output-format csv --output-directory reduction -- mpirun -np 8 ./main_reduction.o 256 256 256
+W20251219 15:18:12.196401 140399438888576 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000630 sec
+W20251219 15:18:12.196489 140399438888576 simple_timer.cpp:55] [rocprofv3] 'mpirun -np 8 ./main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.187527 140434381635456 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000616 sec
+W20251219 15:18:13.187772 140434381635456 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.204581 139856295579520 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000561 sec
+W20251219 15:18:13.204801 139856295579520 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.209897 140460158877568 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.001026 sec
+W20251219 15:18:13.210158 140460158877568 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.217797 139755994034048 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000648 sec
+W20251219 15:18:13.218080 139755994034048 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.221800 140484400193408 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000696 sec
+W20251219 15:18:13.222043 140484400193408 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.223226 140034209488768 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000582 sec
+W20251219 15:18:13.223471 140034209488768 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.226850 140188031287168 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000590 sec
+W20251219 15:18:13.227076 140188031287168 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.239118 140109589335936 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.000594 sec
+W20251219 15:18:13.239386 140109589335936 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::     0.000000 sec
+W20251219 15:18:13.411910 140434381635456 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.441263 140460158877568 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.443855 139856295579520 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.450007 140034209488768 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.453385 140188031287168 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.453504 140484400193408 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.474483 139755994034048 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+W20251219 15:18:13.477672 140109589335936 tool.cpp:2420] HSA version 8.19.0 initialized (instance=0)
+MPI+HIP Jacobi with on-GPU error reduction: 256x256x256, 8 ranks
+Iter 100: error = 3.450079e-01, residual = 6.173761e-04, GPU time = 0.200320 ms
+Iter 200: error = 3.346906e-01, residual = 5.989146e-04, GPU time = 0.200321 ms
+Iter 300: error = 3.246817e-01, residual = 5.810051e-04, GPU time = 0.200321 ms
+Iter 400: error = 3.149722e-01, residual = 5.636312e-04, GPU time = 0.401922 ms
+Iter 500: error = 3.055529e-01, residual = 5.467769e-04, GPU time = 0.212481 ms
+Iter 600: error = 2.964154e-01, residual = 5.304265e-04, GPU time = 0.206401 ms
+Iter 700: error = 2.875511e-01, residual = 5.145650e-04, GPU time = 0.200001 ms
+Iter 800: error = 2.789519e-01, residual = 4.991779e-04, GPU time = 0.436482 ms
+Iter 900: error = 2.706098e-01, residual = 4.842509e-04, GPU time = 0.223680 ms
+Iter 1000: error = 2.625171e-01, residual = 4.697702e-04, GPU time = 0.205281 ms
+Iter 1100: error = 2.546665e-01, residual = 4.557226e-04, GPU time = 0.409761 ms
+Iter 1200: error = 2.470506e-01, residual = 4.420951e-04, GPU time = 0.386721 ms
+Iter 1300: error = 2.396625e-01, residual = 4.288750e-04, GPU time = 0.394881 ms
+Iter 1400: error = 2.324953e-01, residual = 4.160503e-04, GPU time = 0.388161 ms
+Iter 1500: error = 2.255424e-01, residual = 4.036090e-04, GPU time = 0.381761 ms
+Iter 1600: error = 2.187974e-01, residual = 3.915398e-04, GPU time = 0.200961 ms
+Iter 1700: error = 2.122541e-01, residual = 3.798315e-04, GPU time = 0.252800 ms
+Iter 1800: error = 2.059065e-01, residual = 3.684734e-04, GPU time = 0.210080 ms
+Iter 1900: error = 1.997487e-01, residual = 3.574548e-04, GPU time = 0.201281 ms
+Iter 2000: error = 1.937751e-01, residual = 3.467658e-04, GPU time = 0.204960 ms
+Iter 2100: error = 1.879800e-01, residual = 3.363964e-04, GPU time = 0.198721 ms
+Iter 2200: error = 1.823583e-01, residual = 3.263371e-04, GPU time = 0.390401 ms
+Iter 2300: error = 1.769046e-01, residual = 3.165786e-04, GPU time = 0.373441 ms
+Iter 2400: error = 1.716141e-01, residual = 3.071118e-04, GPU time = 0.222081 ms
+Iter 2500: error = 1.664817e-01, residual = 2.979282e-04, GPU time = 0.195841 ms
+Iter 2600: error = 1.615029e-01, residual = 2.890192e-04, GPU time = 0.366081 ms
+Iter 2700: error = 1.566729e-01, residual = 2.803766e-04, GPU time = 0.214240 ms
+Iter 2800: error = 1.519873e-01, residual = 2.719925e-04, GPU time = 0.203680 ms
+Iter 2900: error = 1.474419e-01, residual = 2.638590e-04, GPU time = 0.224001 ms
+Iter 3000: error = 1.430324e-01, residual = 2.559688e-04, GPU time = 0.204961 ms
+Iter 3100: error = 1.387547e-01, residual = 2.483145e-04, GPU time = 0.165761 ms
+Iter 3200: error = 1.346050e-01, residual = 2.408891e-04, GPU time = 0.376801 ms
+Iter 3300: error = 1.305793e-01, residual = 2.336858e-04, GPU time = 0.236801 ms
+Iter 3400: error = 1.266740e-01, residual = 2.266978e-04, GPU time = 0.281601 ms
+Iter 3500: error = 1.228855e-01, residual = 2.199188e-04, GPU time = 0.253761 ms
+Iter 3600: error = 1.192103e-01, residual = 2.133425e-04, GPU time = 0.393761 ms
+Iter 3700: error = 1.156450e-01, residual = 2.069629e-04, GPU time = 0.382242 ms
+Iter 3800: error = 1.121863e-01, residual = 2.007741e-04, GPU time = 0.202881 ms
+Iter 3900: error = 1.088311e-01, residual = 1.947703e-04, GPU time = 0.249281 ms
+Iter 4000: error = 1.055761e-01, residual = 1.889460e-04, GPU time = 0.214560 ms
+Iter 4100: error = 1.024185e-01, residual = 1.832959e-04, GPU time = 0.201121 ms
+Iter 4200: error = 9.935534e-02, residual = 1.778148e-04, GPU time = 0.196001 ms
+Iter 4300: error = 9.638376e-02, residual = 1.724976e-04, GPU time = 0.412002 ms
+Iter 4400: error = 9.350104e-02, residual = 1.673394e-04, GPU time = 0.480322 ms
+Iter 4500: error = 9.070452e-02, residual = 1.623354e-04, GPU time = 0.414561 ms
+Iter 4600: error = 8.799163e-02, residual = 1.574810e-04, GPU time = 0.220321 ms
+Iter 4700: error = 8.535986e-02, residual = 1.527718e-04, GPU time = 0.200960 ms
+Iter 4800: error = 8.280679e-02, residual = 1.482035e-04, GPU time = 0.367841 ms
+Iter 4900: error = 8.033006e-02, residual = 1.437717e-04, GPU time = 0.202401 ms
+Iter 5000: error = 7.792740e-02, residual = 1.394725e-04, GPU time = 0.192641 ms
+Iter 5100: error = 7.559658e-02, residual = 1.353018e-04, GPU time = 0.202241 ms
+Iter 5200: error = 7.333547e-02, residual = 1.312559e-04, GPU time = 0.199040 ms
+Iter 5300: error = 7.114196e-02, residual = 1.273309e-04, GPU time = 0.198880 ms
+Iter 5400: error = 6.901405e-02, residual = 1.235233e-04, GPU time = 0.196961 ms
+Iter 5500: error = 6.694978e-02, residual = 1.198295e-04, GPU time = 0.198720 ms
+Iter 5600: error = 6.494723e-02, residual = 1.162463e-04, GPU time = 0.197280 ms
+Iter 5700: error = 6.300456e-02, residual = 1.127701e-04, GPU time = 0.202241 ms
+Iter 5800: error = 6.111998e-02, residual = 1.093979e-04, GPU time = 0.197920 ms
+Iter 5900: error = 5.929176e-02, residual = 1.061266e-04, GPU time = 0.385761 ms
+Iter 6000: error = 5.751821e-02, residual = 1.029531e-04, GPU time = 0.192160 ms
+Iter 6100: error = 5.579770e-02, residual = 9.987444e-05, GPU time = 0.207041 ms
+Iter 6200: error = 5.412863e-02, residual = 9.688788e-05, GPU time = 0.192321 ms
+Iter 6300: error = 5.250947e-02, residual = 9.399062e-05, GPU time = 0.210560 ms
+Iter 6400: error = 5.093873e-02, residual = 9.118000e-05, GPU time = 0.291200 ms
+Iter 6500: error = 4.941496e-02, residual = 8.845343e-05, GPU time = 0.413441 ms
+Iter 6600: error = 4.793676e-02, residual = 8.580839e-05, GPU time = 0.210081 ms
+Iter 6700: error = 4.650276e-02, residual = 8.324244e-05, GPU time = 0.200961 ms
+Iter 6800: error = 4.511164e-02, residual = 8.075323e-05, GPU time = 0.412001 ms
+Iter 6900: error = 4.376212e-02, residual = 7.833845e-05, GPU time = 0.229281 ms
+Iter 7000: error = 4.245296e-02, residual = 7.599588e-05, GPU time = 0.228001 ms
+Iter 7100: error = 4.118294e-02, residual = 7.372336e-05, GPU time = 0.215840 ms
+Iter 7200: error = 3.995090e-02, residual = 7.151880e-05, GPU time = 0.200801 ms
+Iter 7300: error = 3.875570e-02, residual = 6.938016e-05, GPU time = 0.197761 ms
+Iter 7400: error = 3.759624e-02, residual = 6.730547e-05, GPU time = 0.199841 ms
+Iter 7500: error = 3.647146e-02, residual = 6.529282e-05, GPU time = 0.203041 ms
+Iter 7600: error = 3.538031e-02, residual = 6.334036e-05, GPU time = 0.202561 ms
+Iter 7700: error = 3.432179e-02, residual = 6.144628e-05, GPU time = 0.206721 ms
+Iter 7800: error = 3.329492e-02, residual = 5.960884e-05, GPU time = 0.206561 ms
+Iter 7900: error = 3.229875e-02, residual = 5.782634e-05, GPU time = 0.201921 ms
+Iter 8000: error = 3.133238e-02, residual = 5.609715e-05, GPU time = 0.223681 ms
+Iter 8100: error = 3.039490e-02, residual = 5.441967e-05, GPU time = 0.216640 ms
+Iter 8200: error = 2.948546e-02, residual = 5.279234e-05, GPU time = 0.200481 ms
+Iter 8300: error = 2.860321e-02, residual = 5.121369e-05, GPU time = 0.219041 ms
+Iter 8400: error = 2.774735e-02, residual = 4.968223e-05, GPU time = 0.214721 ms
+Iter 8500: error = 2.691708e-02, residual = 4.819658e-05, GPU time = 0.195201 ms
+Iter 8600: error = 2.611163e-02, residual = 4.675534e-05, GPU time = 0.221601 ms
+Iter 8700: error = 2.533027e-02, residual = 4.535721e-05, GPU time = 0.160960 ms
+Iter 8800: error = 2.457228e-02, residual = 4.400088e-05, GPU time = 0.197121 ms
+Iter 8900: error = 2.383695e-02, residual = 4.268512e-05, GPU time = 0.243360 ms
+Iter 9000: error = 2.312361e-02, residual = 4.140870e-05, GPU time = 0.200640 ms
+Iter 9100: error = 2.243160e-02, residual = 4.017044e-05, GPU time = 0.206241 ms
+Iter 9200: error = 2.176029e-02, residual = 3.896922e-05, GPU time = 0.204001 ms
+Iter 9300: error = 2.110905e-02, residual = 3.780392e-05, GPU time = 0.179680 ms
+Iter 9400: error = 2.047728e-02, residual = 3.667346e-05, GPU time = 0.362401 ms
+Iter 9500: error = 1.986441e-02, residual = 3.557680e-05, GPU time = 0.130081 ms
+Iter 9600: error = 1.926986e-02, residual = 3.451294e-05, GPU time = 0.190881 ms
+Iter 9700: error = 1.869309e-02, residual = 3.348090e-05, GPU time = 0.201601 ms
+Iter 9800: error = 1.813357e-02, residual = 3.247971e-05, GPU time = 0.259041 ms
+Iter 9900: error = 1.759078e-02, residual = 3.150846e-05, GPU time = 0.278561 ms
+Iter 10000: error = 1.706422e-02, residual = 3.056626e-05, GPU time = 0.217121 ms
+Iter 10100: error = 1.655341e-02, residual = 2.965223e-05, GPU time = 0.201281 ms
+Iter 10200: error = 1.605787e-02, residual = 2.876554e-05, GPU time = 0.372801 ms
+Iter 10300: error = 1.557715e-02, residual = 2.790535e-05, GPU time = 0.192321 ms
+Iter 10400: error = 1.511081e-02, residual = 2.707090e-05, GPU time = 0.203360 ms
+Iter 10500: error = 1.465841e-02, residual = 2.626139e-05, GPU time = 0.372961 ms
+Iter 10600: error = 1.421954e-02, residual = 2.547609e-05, GPU time = 0.201601 ms
+Iter 10700: error = 1.379379e-02, residual = 2.471427e-05, GPU time = 0.203040 ms
+Iter 10800: error = 1.338077e-02, residual = 2.397524e-05, GPU time = 0.200321 ms
+Iter 10900: error = 1.298011e-02, residual = 2.325830e-05, GPU time = 0.213121 ms
+Iter 11000: error = 1.259142e-02, residual = 2.256280e-05, GPU time = 0.197281 ms
+Iter 11100: error = 1.221436e-02, residual = 2.188810e-05, GPU time = 0.413281 ms
+Iter 11200: error = 1.184857e-02, residual = 2.123358e-05, GPU time = 0.405922 ms
+Iter 11300: error = 1.149373e-02, residual = 2.059863e-05, GPU time = 0.411041 ms
+Iter 11400: error = 1.114949e-02, residual = 1.998266e-05, GPU time = 0.130081 ms
+Iter 11500: error = 1.081555e-02, residual = 1.938512e-05, GPU time = 0.199841 ms
+Iter 11600: error = 1.049159e-02, residual = 1.880544e-05, GPU time = 0.193121 ms
+Iter 11700: error = 1.017732e-02, residual = 1.824310e-05, GPU time = 0.194880 ms
+Iter 11800: error = 9.872446e-03, residual = 1.769757e-05, GPU time = 0.203681 ms
+Iter 11900: error = 9.576690e-03, residual = 1.716836e-05, GPU time = 0.218721 ms
+Iter 12000: error = 9.289778e-03, residual = 1.665497e-05, GPU time = 0.191840 ms
+Iter 12100: error = 9.011446e-03, residual = 1.615693e-05, GPU time = 0.363041 ms
+Iter 12200: error = 8.741437e-03, residual = 1.567379e-05, GPU time = 0.204960 ms
+Iter 12300: error = 8.479502e-03, residual = 1.520509e-05, GPU time = 0.194880 ms
+Iter 12400: error = 8.225400e-03, residual = 1.475041e-05, GPU time = 0.211841 ms
+Iter 12500: error = 7.978896e-03, residual = 1.430933e-05, GPU time = 0.210401 ms
+Iter 12600: error = 7.739764e-03, residual = 1.388143e-05, GPU time = 0.201281 ms
+Iter 12700: error = 7.507782e-03, residual = 1.346633e-05, GPU time = 0.235681 ms
+Iter 12800: error = 7.282737e-03, residual = 1.306365e-05, GPU time = 0.199681 ms
+Iter 12900: error = 7.064422e-03, residual = 1.267300e-05, GPU time = 0.404962 ms
+Iter 13000: error = 6.852635e-03, residual = 1.229404e-05, GPU time = 0.195681 ms
+Iter 13100: error = 6.647182e-03, residual = 1.192641e-05, GPU time = 0.414721 ms
+Iter 13200: error = 6.447872e-03, residual = 1.156977e-05, GPU time = 0.190721 ms
+Iter 13300: error = 6.254522e-03, residual = 1.122380e-05, GPU time = 0.207201 ms
+Iter 13400: error = 6.066953e-03, residual = 1.088817e-05, GPU time = 0.194241 ms
+Iter 13500: error = 5.884994e-03, residual = 1.056258e-05, GPU time = 0.376961 ms
+Iter 13600: error = 5.708476e-03, residual = 1.024672e-05, GPU time = 0.198080 ms
+Iter 13700: error = 5.537236e-03, residual = 9.940314e-06, GPU time = 0.196161 ms
+Iter 13800: error = 5.371117e-03, residual = 9.643067e-06, GPU time = 0.201281 ms
+Iter 13900: error = 5.209965e-03, residual = 9.354709e-06, GPU time = 0.203680 ms
+Iter 14000: error = 5.053633e-03, residual = 9.074973e-06, GPU time = 0.239360 ms
+Iter 14100: error = 4.901975e-03, residual = 8.803602e-06, GPU time = 0.361281 ms
+Iter 14200: error = 4.754852e-03, residual = 8.540347e-06, GPU time = 0.377121 ms
+Iter 14300: error = 4.612129e-03, residual = 8.284963e-06, GPU time = 0.248161 ms
+Iter 14400: error = 4.473673e-03, residual = 8.037216e-06, GPU time = 0.251521 ms
+Iter 14500: error = 4.339358e-03, residual = 7.796878e-06, GPU time = 0.215361 ms
+Iter 14600: error = 4.209059e-03, residual = 7.563726e-06, GPU time = 0.200321 ms
+Iter 14700: error = 4.082657e-03, residual = 7.337547e-06, GPU time = 0.187520 ms
+Iter 14800: error = 3.960034e-03, residual = 7.118131e-06, GPU time = 0.187041 ms
+Iter 14900: error = 3.841079e-03, residual = 6.905276e-06, GPU time = 0.196801 ms
+Iter 15000: error = 3.725680e-03, residual = 6.698786e-06, GPU time = 0.389761 ms
+Iter 15100: error = 3.613732e-03, residual = 6.498471e-06, GPU time = 0.262721 ms
+Iter 15200: error = 3.505132e-03, residual = 6.304146e-06, GPU time = 0.199680 ms
+Iter 15300: error = 3.399779e-03, residual = 6.115632e-06, GPU time = 0.391521 ms
+Iter 15400: error = 3.297577e-03, residual = 5.932755e-06, GPU time = 0.222560 ms
+Iter 15500: error = 3.198431e-03, residual = 5.755347e-06, GPU time = 0.213761 ms
+Iter 15600: error = 3.102250e-03, residual = 5.583243e-06, GPU time = 0.142240 ms
+Iter 15700: error = 3.008944e-03, residual = 5.416286e-06, GPU time = 0.278721 ms
+Iter 15800: error = 2.918429e-03, residual = 5.254322e-06, GPU time = 0.233600 ms
+Iter 15900: error = 2.830621e-03, residual = 5.097201e-06, GPU time = 0.195521 ms
+Iter 16000: error = 2.745438e-03, residual = 4.944779e-06, GPU time = 0.194401 ms
+Iter 16100: error = 2.662803e-03, residual = 4.796914e-06, GPU time = 0.243041 ms
+Iter 16200: error = 2.582638e-03, residual = 4.653471e-06, GPU time = 0.198721 ms
+Iter 16300: error = 2.504871e-03, residual = 4.514317e-06, GPU time = 0.211840 ms
+Iter 16400: error = 2.429429e-03, residual = 4.379325e-06, GPU time = 0.387202 ms
+Iter 16500: error = 2.356244e-03, residual = 4.248369e-06, GPU time = 0.420641 ms
+Iter 16600: error = 2.285246e-03, residual = 4.121329e-06, GPU time = 0.206241 ms
+Iter 16700: error = 2.216372e-03, residual = 3.998088e-06, GPU time = 0.437602 ms
+Iter 16800: error = 2.149557e-03, residual = 3.878533e-06, GPU time = 0.191521 ms
+Iter 16900: error = 2.084741e-03, residual = 3.762552e-06, GPU time = 0.235361 ms
+Iter 17000: error = 2.021862e-03, residual = 3.650040e-06, GPU time = 0.212320 ms
+Iter 17100: error = 1.960864e-03, residual = 3.540892e-06, GPU time = 0.231040 ms
+Iter 17200: error = 1.901690e-03, residual = 3.435008e-06, GPU time = 0.361281 ms
+Iter 17300: error = 1.844285e-03, residual = 3.332290e-06, GPU time = 0.232320 ms
+Iter 17400: error = 1.788597e-03, residual = 3.232644e-06, GPU time = 0.208801 ms
+Iter 17500: error = 1.734574e-03, residual = 3.135978e-06, GPU time = 0.234401 ms
+Iter 17600: error = 1.682167e-03, residual = 3.042202e-06, GPU time = 0.381761 ms
+Iter 17700: error = 1.631327e-03, residual = 2.951231e-06, GPU time = 0.241281 ms
+Iter 17800: error = 1.582007e-03, residual = 2.862979e-06, GPU time = 0.221121 ms
+Iter 17900: error = 1.534162e-03, residual = 2.777367e-06, GPU time = 0.387841 ms
+Iter 18000: error = 1.487747e-03, residual = 2.694315e-06, GPU time = 0.384641 ms
+Iter 18100: error = 1.442721e-03, residual = 2.613746e-06, GPU time = 0.200480 ms
+Iter 18200: error = 1.399041e-03, residual = 2.535587e-06, GPU time = 0.197921 ms
+Iter 18300: error = 1.356667e-03, residual = 2.459765e-06, GPU time = 0.216320 ms
+Iter 18400: error = 1.315560e-03, residual = 2.386210e-06, GPU time = 0.236641 ms
+Iter 18500: error = 1.275683e-03, residual = 2.314855e-06, GPU time = 0.371521 ms
+Iter 18600: error = 1.236997e-03, residual = 2.245633e-06, GPU time = 0.197761 ms
+Iter 18700: error = 1.199469e-03, residual = 2.178482e-06, GPU time = 0.218081 ms
+Iter 18800: error = 1.163063e-03, residual = 2.113338e-06, GPU time = 0.379041 ms
+Iter 18900: error = 1.127746e-03, residual = 2.050143e-06, GPU time = 0.243521 ms
+Iter 19000: error = 1.093485e-03, residual = 1.988837e-06, GPU time = 0.201121 ms
+Iter 19100: error = 1.060248e-03, residual = 1.929364e-06, GPU time = 0.192161 ms
+Iter 19200: error = 1.028005e-03, residual = 1.871670e-06, GPU time = 0.204641 ms
+Iter 19300: error = 9.967262e-04, residual = 1.815701e-06, GPU time = 0.361601 ms
+Iter 19400: error = 9.663828e-04, residual = 1.761406e-06, GPU time = 0.236641 ms
+Iter 19500: error = 9.369468e-04, residual = 1.708734e-06, GPU time = 0.199680 ms
+Iter 19600: error = 9.083911e-04, residual = 1.657638e-06, GPU time = 0.194400 ms
+Iter 19700: error = 8.806892e-04, residual = 1.608069e-06, GPU time = 0.215841 ms
+Iter 19800: error = 8.538157e-04, residual = 1.559983e-06, GPU time = 0.256161 ms
+Iter 19900: error = 8.277458e-04, residual = 1.513334e-06, GPU time = 0.449762 ms
+Iter 20000: error = 8.024555e-04, residual = 1.468081e-06, GPU time = 0.461602 ms
+Iter 20100: error = 7.779214e-04, residual = 1.424180e-06, GPU time = 0.193601 ms
+Iter 20200: error = 7.541210e-04, residual = 1.381593e-06, GPU time = 0.218721 ms
+Iter 20300: error = 7.310323e-04, residual = 1.340279e-06, GPU time = 0.218721 ms
+Iter 20400: error = 7.086340e-04, residual = 1.300200e-06, GPU time = 0.240801 ms
+Iter 20500: error = 6.869055e-04, residual = 1.261320e-06, GPU time = 0.195680 ms
+Iter 20600: error = 6.658268e-04, residual = 1.223602e-06, GPU time = 0.260641 ms
+Iter 20700: error = 6.453784e-04, residual = 1.187013e-06, GPU time = 0.196000 ms
+Iter 20800: error = 6.255414e-04, residual = 1.151517e-06, GPU time = 0.215201 ms
+Iter 20900: error = 6.062977e-04, residual = 1.117083e-06, GPU time = 0.209921 ms
+Iter 21000: error = 5.876294e-04, residual = 1.083679e-06, GPU time = 0.203841 ms
+Iter 21100: error = 5.695193e-04, residual = 1.051273e-06, GPU time = 0.369761 ms
+Iter 21200: error = 5.519508e-04, residual = 1.019837e-06, GPU time = 0.224321 ms
+Iter 21300: error = 5.349076e-04, residual = 9.893407e-07, GPU time = 0.229281 ms
+Iter 21400: error = 5.183741e-04, residual = 9.597562e-07, GPU time = 0.224801 ms
+Iter 21500: error = 5.023350e-04, residual = 9.310565e-07, GPU time = 0.213441 ms
+Iter 21600: error = 4.867755e-04, residual = 9.032149e-07, GPU time = 0.194881 ms
+Iter 21700: error = 4.716813e-04, residual = 8.762059e-07, GPU time = 0.220961 ms
+Iter 21800: error = 4.570384e-04, residual = 8.500045e-07, GPU time = 0.433281 ms
+Iter 21900: error = 4.428334e-04, residual = 8.245867e-07, GPU time = 0.213761 ms
+Iter 22000: error = 4.290532e-04, residual = 7.999289e-07, GPU time = 0.234081 ms
+Iter 22100: error = 4.156851e-04, residual = 7.760085e-07, GPU time = 0.203841 ms
+Iter 22200: error = 4.027167e-04, residual = 7.528034e-07, GPU time = 0.236321 ms
+Iter 22300: error = 3.901361e-04, residual = 7.302921e-07, GPU time = 0.203200 ms
+Iter 22400: error = 3.779317e-04, residual = 7.084541e-07, GPU time = 0.376321 ms
+Iter 22500: error = 3.660923e-04, residual = 6.872690e-07, GPU time = 0.435681 ms
+Iter 22600: error = 3.546069e-04, residual = 6.667175e-07, GPU time = 0.206881 ms
+Iter 22700: error = 3.434649e-04, residual = 6.467805e-07, GPU time = 0.215520 ms
+Iter 22800: error = 3.326561e-04, residual = 6.274397e-07, GPU time = 0.253600 ms
+Iter 22900: error = 3.221706e-04, residual = 6.086773e-07, GPU time = 0.190561 ms
+Iter 23000: error = 3.119986e-04, residual = 5.904759e-07, GPU time = 0.199200 ms
+Iter 23100: error = 3.021307e-04, residual = 5.728188e-07, GPU time = 0.437282 ms
+Iter 23200: error = 2.925580e-04, residual = 5.556896e-07, GPU time = 0.215681 ms
+Iter 23300: error = 2.832715e-04, residual = 5.390728e-07, GPU time = 0.198401 ms
+Iter 23400: error = 2.742627e-04, residual = 5.229528e-07, GPU time = 0.419681 ms
+Iter 23500: error = 2.655233e-04, residual = 5.073148e-07, GPU time = 0.203040 ms
+Iter 23600: error = 2.570452e-04, residual = 4.921445e-07, GPU time = 0.198561 ms
+Iter 23700: error = 2.488207e-04, residual = 4.774278e-07, GPU time = 0.240160 ms
+Iter 23800: error = 2.408421e-04, residual = 4.631512e-07, GPU time = 0.181121 ms
+Iter 23900: error = 2.331021e-04, residual = 4.493015e-07, GPU time = 0.207360 ms
+Iter 24000: error = 2.255935e-04, residual = 4.358659e-07, GPU time = 0.198721 ms
+Iter 24100: error = 2.183094e-04, residual = 4.228321e-07, GPU time = 0.223841 ms
+Iter 24200: error = 2.112432e-04, residual = 4.101881e-07, GPU time = 0.379681 ms
+Iter 24300: error = 2.043883e-04, residual = 3.979222e-07, GPU time = 0.409601 ms
+Iter 24400: error = 1.977384e-04, residual = 3.860230e-07, GPU time = 0.366561 ms
+Iter 24500: error = 1.912873e-04, residual = 3.744797e-07, GPU time = 0.208640 ms
+Iter 24600: error = 1.850291e-04, residual = 3.632816e-07, GPU time = 0.215201 ms
+Iter 24700: error = 1.789581e-04, residual = 3.524183e-07, GPU time = 0.213441 ms
+Iter 24800: error = 1.730686e-04, residual = 3.418799e-07, GPU time = 0.377121 ms
+Iter 24900: error = 1.673552e-04, residual = 3.316566e-07, GPU time = 0.388641 ms
+Iter 25000: error = 1.618127e-04, residual = 3.217390e-07, GPU time = 0.241601 ms
+Iter 25100: error = 1.564359e-04, residual = 3.121179e-07, GPU time = 0.405761 ms
+Iter 25200: error = 1.512199e-04, residual = 3.027846e-07, GPU time = 0.200000 ms
+Iter 25300: error = 1.461598e-04, residual = 2.937304e-07, GPU time = 0.413601 ms
+Iter 25400: error = 1.412511e-04, residual = 2.849469e-07, GPU time = 0.265120 ms
+Iter 25500: error = 1.364892e-04, residual = 2.764261e-07, GPU time = 0.378081 ms
+Iter 25600: error = 1.318696e-04, residual = 2.681601e-07, GPU time = 0.200321 ms
+Iter 25700: error = 1.273882e-04, residual = 2.601412e-07, GPU time = 0.409761 ms
+Iter 25800: error = 1.230408e-04, residual = 2.523622e-07, GPU time = 0.377122 ms
+Iter 25900: error = 1.188235e-04, residual = 2.448157e-07, GPU time = 0.265121 ms
+Iter 26000: error = 1.147322e-04, residual = 2.374950e-07, GPU time = 0.201761 ms
+Iter 26100: error = 1.107632e-04, residual = 2.303931e-07, GPU time = 0.207200 ms
+Iter 26200: error = 1.069130e-04, residual = 2.235036e-07, GPU time = 0.189441 ms
+Iter 26300: error = 1.031779e-04, residual = 2.168202e-07, GPU time = 0.415842 ms
+Iter 26400: error = 9.955445e-05, residual = 2.103365e-07, GPU time = 0.228801 ms
+Iter 26500: error = 9.603938e-05, residual = 2.040468e-07, GPU time = 0.194081 ms
+Iter 26600: error = 9.262942e-05, residual = 1.979452e-07, GPU time = 0.207200 ms
+Iter 26700: error = 8.932143e-05, residual = 1.920260e-07, GPU time = 0.222081 ms
+Iter 26800: error = 8.611236e-05, residual = 1.862838e-07, GPU time = 0.205921 ms
+Iter 26900: error = 8.299925e-05, residual = 1.807133e-07, GPU time = 0.204800 ms
+Iter 27000: error = 7.997923e-05, residual = 1.753094e-07, GPU time = 0.197920 ms
+Iter 27100: error = 7.704952e-05, residual = 1.700671e-07, GPU time = 0.203201 ms
+Iter 27200: error = 7.420742e-05, residual = 1.649815e-07, GPU time = 0.201761 ms
+Iter 27300: error = 7.145030e-05, residual = 1.600481e-07, GPU time = 0.225281 ms
+Iter 27400: error = 6.877563e-05, residual = 1.552621e-07, GPU time = 0.200001 ms
+Iter 27500: error = 6.618095e-05, residual = 1.506193e-07, GPU time = 0.199200 ms
+Iter 27600: error = 6.366385e-05, residual = 1.461153e-07, GPU time = 0.205121 ms
+Iter 27700: error = 6.122202e-05, residual = 1.417460e-07, GPU time = 0.202720 ms
+Iter 27800: error = 5.885321e-05, residual = 1.375073e-07, GPU time = 0.405762 ms
+Iter 27900: error = 5.655524e-05, residual = 1.333954e-07, GPU time = 0.199681 ms
+Iter 28000: error = 5.432598e-05, residual = 1.294065e-07, GPU time = 0.199680 ms
+Iter 28100: error = 5.216338e-05, residual = 1.255368e-07, GPU time = 0.202880 ms
+Iter 28200: error = 5.006545e-05, residual = 1.217828e-07, GPU time = 0.202881 ms
+Iter 28300: error = 4.803026e-05, residual = 1.181411e-07, GPU time = 0.203360 ms
+Iter 28400: error = 4.605593e-05, residual = 1.146083e-07, GPU time = 0.196641 ms
+Iter 28500: error = 4.414063e-05, residual = 1.111812e-07, GPU time = 0.222240 ms
+Iter 28600: error = 4.228261e-05, residual = 1.078565e-07, GPU time = 0.218721 ms
+Iter 28700: error = 4.048015e-05, residual = 1.046313e-07, GPU time = 0.214721 ms
+Iter 28800: error = 3.873159e-05, residual = 1.015025e-07, GPU time = 0.201441 ms
+Iter 28900: error = 3.703531e-05, residual = 9.846721e-08, GPU time = 0.201281 ms
+Iter 29000: error = 3.538976e-05, residual = 9.552272e-08, GPU time = 0.287041 ms
+Iter 29100: error = 3.379342e-05, residual = 9.266629e-08, GPU time = 0.212001 ms
+Iter 29200: error = 3.224481e-05, residual = 8.989527e-08, GPU time = 0.258241 ms
+Iter 29300: error = 3.074252e-05, residual = 8.720712e-08, GPU time = 0.204161 ms
+Iter 29400: error = 2.928514e-05, residual = 8.459934e-08, GPU time = 0.215681 ms
+Iter 29500: error = 2.787134e-05, residual = 8.206955e-08, GPU time = 0.220000 ms
+Iter 29600: error = 2.649983e-05, residual = 7.961541e-08, GPU time = 0.201600 ms
+Iter 29700: error = 2.516932e-05, residual = 7.723466e-08, GPU time = 0.207040 ms
+Iter 29800: error = 2.387860e-05, residual = 7.492509e-08, GPU time = 0.197600 ms
+Iter 29900: error = 2.262648e-05, residual = 7.268459e-08, GPU time = 0.216160 ms
+Iter 30000: error = 2.141180e-05, residual = 7.051109e-08, GPU time = 0.200641 ms
+Iter 30100: error = 2.023344e-05, residual = 6.840259e-08, GPU time = 0.198561 ms
+Iter 30200: error = 1.909032e-05, residual = 6.635713e-08, GPU time = 0.225921 ms
+Iter 30300: error = 1.798139e-05, residual = 6.437284e-08, GPU time = 0.420961 ms
+Iter 30400: error = 1.690561e-05, residual = 6.244789e-08, GPU time = 0.205921 ms
+Iter 30500: error = 1.586200e-05, residual = 6.058050e-08, GPU time = 0.203361 ms
+Iter 30600: error = 1.484960e-05, residual = 5.876895e-08, GPU time = 0.207041 ms
+Iter 30700: error = 1.386747e-05, residual = 5.701157e-08, GPU time = 0.202401 ms
+Iter 30800: error = 1.291472e-05, residual = 5.530674e-08, GPU time = 0.219521 ms
+Iter 30900: error = 1.199045e-05, residual = 5.365289e-08, GPU time = 0.201921 ms
+Iter 31000: error = 1.109382e-05, residual = 5.204850e-08, GPU time = 0.420801 ms
+Iter 31100: error = 1.022400e-05, residual = 5.049208e-08, GPU time = 0.203201 ms
+Iter 31200: error = 9.380198e-06, residual = 4.898221e-08, GPU time = 0.197441 ms
+Iter 31300: error = 8.561624e-06, residual = 4.751748e-08, GPU time = 0.207041 ms
+Iter 31400: error = 7.767528e-06, residual = 4.609656e-08, GPU time = 0.192640 ms
+Iter 31500: error = 6.997178e-06, residual = 4.471812e-08, GPU time = 0.201760 ms
+Iter 31600: error = 6.249865e-06, residual = 4.338091e-08, GPU time = 0.197600 ms
+Iter 31700: error = 5.524898e-06, residual = 4.208368e-08, GPU time = 0.200641 ms
+Iter 31800: error = 4.821610e-06, residual = 4.082525e-08, GPU time = 0.196801 ms
+Iter 31900: error = 4.139352e-06, residual = 3.960444e-08, GPU time = 0.210721 ms
+Iter 32000: error = 3.477496e-06, residual = 3.842014e-08, GPU time = 0.214401 ms
+Iter 32100: error = 2.835432e-06, residual = 3.727126e-08, GPU time = 0.199840 ms
+Iter 32200: error = 2.212568e-06, residual = 3.615673e-08, GPU time = 0.421601 ms
+Iter 32300: error = 1.608329e-06, residual = 3.507553e-08, GPU time = 0.223201 ms
+Iter 32400: error = 1.022159e-06, residual = 3.402666e-08, GPU time = 0.216000 ms
+Iter 32500: error = 4.535173e-07, residual = 3.300915e-08, GPU time = 0.440642 ms
+Finished at iter 32500, error 4.535173e-07, wall time 17.280446 s
+W20251219 15:18:31.297769 140109589335936 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.058383 sec
+[rank 2/8] host=k005-003.hpcfund pid=3510088
+[rank 0/8] host=k005-003.hpcfund pid=3510082
+W20251219 15:18:31.297884 139755994034048 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.079805 sec
+[rank 1/8] host=k005-003.hpcfund pid=3510085
+[rank 3/8] host=k005-003.hpcfund pid=3510091
+W20251219 15:18:31.298033 140484400193408 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.075991 sec
+W20251219 15:18:31.298024 140188031287168 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.070948 sec
+[rank 6/8] host=k005-004.hpcfund pid=11765
+W20251219 15:18:31.299363 140460158877568 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.089206 sec
+[rank 5/8] host=k005-004.hpcfund pid=11762
+W20251219 15:18:31.299603 139856295579520 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.094802 sec
+W20251219 15:18:31.299838 140034209488768 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.076367 sec
+[rank 7/8] host=k005-004.hpcfund pid=11768
+[rank 4/8] host=k005-004.hpcfund pid=11759
+W20251219 15:18:31.300118 140434381635456 simple_timer.cpp:55] [rocprofv3] './main_reduction.o 256 256 256' ::    18.112346 sec
+E20251219 15:18:31.318957 140484400193408 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510085_kernel_stats.csv
+E20251219 15:18:31.319168 140109589335936 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510088_kernel_stats.csv
+E20251219 15:18:31.319252 140460158877568 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11765_kernel_stats.csv
+E20251219 15:18:31.319496 139755994034048 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510082_kernel_stats.csv
+E20251219 15:18:31.319579 140434381635456 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11759_kernel_stats.csv
+E20251219 15:18:31.319845 140188031287168 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510091_kernel_stats.csv
+E20251219 15:18:31.319989 140460158877568 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11765_kernel_trace.csv
+E20251219 15:18:31.320312 140434381635456 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11759_kernel_trace.csv
+E20251219 15:18:31.320145 140484400193408 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510085_kernel_trace.csv
+E20251219 15:18:31.320516 140109589335936 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510088_kernel_trace.csv
+E20251219 15:18:31.320876 139755994034048 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510082_kernel_trace.csv
+E20251219 15:18:31.321190 139856295579520 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11762_kernel_stats.csv
+E20251219 15:18:31.321269 140188031287168 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510091_kernel_trace.csv
+E20251219 15:18:31.322004 139856295579520 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11762_kernel_trace.csv
+E20251219 15:18:31.323917 140034209488768 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11768_kernel_stats.csv
+E20251219 15:18:31.324698 140034209488768 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11768_kernel_trace.csv
+E20251219 15:18:31.490915 140460158877568 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11765_agent_info.csv
+E20251219 15:18:31.491270 140434381635456 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11759_agent_info.csv
+E20251219 15:18:31.491588 140460158877568 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11765_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |      8079715840 |       2.486e+05 |     97.795451 |          114880 |         5643860 |       2.446e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |        79422984 |       2.444e+05 |      0.961322 |          135840 |         5406738 |       2.935e+05 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        51849780 |       7.977e+04 |      0.627581 |            3200 |          249761 |       9.277e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        29700424 |       4.569e+04 |      0.359489 |           13280 |          198880 |       3.005e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        21163436 |       3.256e+04 |      0.256158 |            3840 |          210881 |       3.301e+04 |
+
+E20251219 15:18:31.493161 140434381635456 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11759_domain_stats.csv
+W20251219 15:18:31.493161 140460158877568 simple_timer.cpp:55] [rocprofv3] output generation ::     0.193050 sec
+W20251219 15:18:31.493216 140460158877568 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.193195 sec
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |      7450558492 |       2.292e+05 |     97.890620 |          114241 |         5820660 |       2.460e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |        71536870 |       2.201e+05 |      0.939901 |          127681 |          517601 |       1.053e+05 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        50010570 |       7.694e+04 |      0.657074 |            2880 |          254721 |       8.901e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        22818972 |       3.511e+04 |      0.299812 |           12640 |          252960 |       4.395e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        16180699 |       2.489e+04 |      0.212593 |            4000 |          250240 |       3.049e+04 |
+
+W20251219 15:18:31.494054 140434381635456 simple_timer.cpp:55] [rocprofv3] output generation ::     0.193320 sec
+W20251219 15:18:31.494111 140434381635456 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.193425 sec
+E20251219 15:18:31.495040 139856295579520 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11762_agent_info.csv
+E20251219 15:18:31.496072 139856295579520 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11762_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |     10917170001 |       3.359e+05 |     98.549629 |          114881 |         6545142 |       3.370e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |        87024934 |       2.678e+05 |      0.785577 |          136161 |          568322 |       8.607e+04 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        36892916 |       5.676e+04 |      0.333033 |            3040 |          246401 |       7.223e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        20461829 |       3.148e+04 |      0.184710 |           13280 |          175360 |       2.694e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        16290139 |       2.506e+04 |      0.147052 |            4960 |          140641 |       1.906e+04 |
+
+W20251219 15:18:31.496597 139856295579520 simple_timer.cpp:55] [rocprofv3] output generation ::     0.196439 sec
+W20251219 15:18:31.496654 139856295579520 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.196568 sec
+E20251219 15:18:31.497471 140484400193408 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510085_agent_info.csv
+E20251219 15:18:31.498285 140484400193408 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510085_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |     11359453698 |       3.495e+05 |     98.467212 |          113920 |         6396659 |       3.358e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |       115143861 |       3.543e+05 |      0.998102 |          127520 |          476801 |       7.336e+04 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        28844407 |       4.438e+04 |      0.250032 |            2880 |          290881 |       6.193e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        16927414 |       2.604e+04 |      0.146732 |            3680 |          173120 |       2.904e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        15911086 |       2.448e+04 |      0.137922 |           12480 |          215841 |       2.730e+04 |
+
+E20251219 15:18:31.498796 140188031287168 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510091_agent_info.csv
+W20251219 15:18:31.498965 140484400193408 simple_timer.cpp:55] [rocprofv3] output generation ::     0.200181 sec
+W20251219 15:18:31.499022 140484400193408 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.200338 sec
+E20251219 15:18:31.499180 140034209488768 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11768_agent_info.csv
+E20251219 15:18:31.499809 140188031287168 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510091_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |     11335775458 |       3.488e+05 |     98.498500 |          114080 |         4102891 |       3.321e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |       106377600 |       3.273e+05 |      0.924333 |          124321 |          459521 |       1.036e+05 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        26265998 |       4.041e+04 |      0.228230 |           12640 |          289441 |       4.067e+04 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        25524719 |       3.927e+04 |      0.221789 |            2720 |          278241 |       5.733e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        14633001 |       2.251e+04 |      0.127149 |            4000 |          250561 |       2.444e+04 |
+
+E20251219 15:18:31.500415 140034209488768 output_stream.cpp:111] Opened result file: reduction/k005-004.hpcfund/11768_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |      8855499322 |       2.725e+05 |     97.603303 |          112800 |         5769620 |       2.820e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |        92447361 |       2.845e+05 |      1.018934 |          124641 |          464002 |       1.025e+05 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        52948181 |       8.146e+04 |      0.583583 |            3680 |          253761 |       8.883e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        46485270 |       7.152e+04 |      0.512350 |           12480 |          245121 |       7.073e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        25570332 |       3.934e+04 |      0.281830 |            4960 |          221120 |       3.792e+04 |
+
+W20251219 15:18:31.500922 140034209488768 simple_timer.cpp:55] [rocprofv3] output generation ::     0.200426 sec
+W20251219 15:18:31.500991 140034209488768 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.200565 sec
+W20251219 15:18:31.500835 140188031287168 simple_timer.cpp:55] [rocprofv3] output generation ::     0.202086 sec
+W20251219 15:18:31.500910 140188031287168 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.202253 sec
+E20251219 15:18:31.502379 139755994034048 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510082_agent_info.csv
+E20251219 15:18:31.503122 140109589335936 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510088_agent_info.csv
+E20251219 15:18:31.503506 139755994034048 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510082_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |      6940724840 |       2.136e+05 |     97.368839 |          108640 |         5963219 |       2.037e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |        86415297 |       2.659e+05 |      1.212288 |          123200 |          492962 |       8.493e+04 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        63941942 |       9.837e+04 |      0.897018 |            2880 |          279521 |       1.133e+05 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        20186464 |       3.106e+04 |      0.283188 |            4000 |          357601 |       5.187e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        17012852 |       2.617e+04 |      0.238667 |           12640 |          276001 |       3.574e+04 |
+
+E20251219 15:18:31.504097 140109589335936 output_stream.cpp:111] Opened result file: reduction/k005-003.hpcfund/3510088_domain_stats.csv
+
+    ROCPROFV3 SUMMARY:
+
+    |                                                          NAME                                                          |     DOMAIN      |      CALLS      | DURATION (nsec) | AVERAGE (nsec)  | PERCENT (INC) |   MIN (nsec)    |   MAX (nsec)    |     STDDEV      |
+    |------------------------------------------------------------------------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|---------------|-----------------|-----------------|-----------------|
+    | jacobi3d_kernel(double const*, double*, double const*, int, int, int, int, int, int, int, double)                      | KERNEL_DISPATCH |           32500 |      8820354652 |       2.714e+05 |     98.001345 |          113760 |         5876177 |       2.712e+05 |
+    | fused_err_res_partials(double const*, double const*, double const*, double*, double*, int, int, int, int, int, double) | KERNEL_DISPATCH |             325 |        90196585 |       2.775e+05 |      1.002158 |          166080 |          479682 |       5.857e+04 |
+    | __amd_rocclr_fillBufferAligned                                                                                         | KERNEL_DISPATCH |             650 |        50758224 |       7.809e+04 |      0.563965 |            2560 |          292321 |       8.913e+04 |
+    | reduce_partials(double const*, int, double*)                                                                           | KERNEL_DISPATCH |             650 |        23043916 |       3.545e+04 |      0.256037 |           12800 |          243361 |       3.144e+04 |
+    | __amd_rocclr_copyBuffer                                                                                                | KERNEL_DISPATCH |             650 |        15885010 |       2.444e+04 |      0.176495 |            3840 |          172480 |       3.335e+04 |
+
+W20251219 15:18:31.505226 139755994034048 simple_timer.cpp:55] [rocprofv3] output generation ::     0.206689 sec
+W20251219 15:18:31.505289 139755994034048 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.206826 sec
+W20251219 15:18:31.505482 140109589335936 simple_timer.cpp:55] [rocprofv3] output generation ::     0.206903 sec
+W20251219 15:18:31.505546 140109589335936 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.207041 sec
+W20251219 15:18:31.582751 140399438888576 simple_timer.cpp:55] [rocprofv3] output generation ::     0.001003 sec
+W20251219 15:18:31.582806 140399438888576 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.001263 sec
