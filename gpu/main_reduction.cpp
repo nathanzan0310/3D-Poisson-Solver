@@ -108,14 +108,14 @@ int main(int argc, char **argv) {
   MPI_Comm_size(comm, &size);
 
   // Problem size (can be overridden: Nx Ny Nz)
-  int Nx = 128, Ny = 128, Nz_global = 128;
+  int Nx = 256, Ny = 256, Nz_global = 256;
   if (argc >= 4) {
     Nx = std::atoi(argv[1]);
     Ny = std::atoi(argv[2]);
     Nz_global = std::atoi(argv[3]);
   }
 
-  int max_iter = 20000;
+  int max_iter = 50000;
   double tol = 1e-6;
   int sample_every = 100;
 
